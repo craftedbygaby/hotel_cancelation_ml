@@ -23,7 +23,8 @@ This project was developed as part of the **IronHack Data Analytics Bootcamp** a
 | **Records** | 119,390 rows |
 | **Columns** | 32 |
 | **Coverage** | 2015 — 2017 |
-| **Note** | This is a fictional dataset. All hotel names, locations, and personal data are simulated and do not represent real bookings or individuals. |
+| **Note** | Real hotel booking data with personal identifiers removed. Columns `name`, `email`, `phone number`, and `credit_card` were artificially created and added. |
+| **Source Paper** | *Hotel Booking Demand Datasets* — Nuno Antonio, Ana Almeida, Luis Nunes. Data in Brief, Volume 22, February 2019. |
 
 ---
 
@@ -51,18 +52,12 @@ This slight class imbalance will be accounted for during model training.
 hotel_cancelation_ml/
 │
 ├── data/
-│   └── hotel_bookings.csv
+│   ├── hotel_bookings_raw_data.csv   # raw dataset
+│   └── hotel_bookings_clean.csv      # cleaned dataset
 │
 ├── notebooks/
 │   ├── 01_cleaning.ipynb
-│   ├── 02_eda.ipynb
-│   ├── 03_feature_engineering.ipynb
-│   └── 04_modeling.ipynb
-│
-├── scripts/
-│   ├── cleaning.py
-│   ├── features.py
-│   └── model.py
+│   └── 02_modeling.ipynb
 │
 ├── .gitignore
 └── README.md
@@ -97,7 +92,7 @@ hotel_cancelation_ml/
 
 ## Limitations
 
-- Dataset is **fictional** — findings cannot be generalised to real-world hotel booking behaviour
+- Personal identifiers have been removed from the dataset — columns `name`, `email`, `phone number`, and `credit_card` are artificially generated and should not be used in modelling
 - Covers only two hotel types: Resort Hotel and City Hotel
 - Data spans 2015–2017 — patterns may not reflect current booking trends
 
