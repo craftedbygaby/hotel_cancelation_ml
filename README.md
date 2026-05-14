@@ -42,7 +42,58 @@ This slight class imbalance will be accounted for during model training.
 
 ## ML Pipeline
 
-*To be updated as the project progresses.*
+### 1. Data Cleaning
+
+The raw dataset (`hotel_bookings_raw_data.csv`) was cleaned using the following steps:
+
+1. **Dropped columns** with excessive null values: `agent` and `company`
+2. **Dropped rows** with missing values in `children` and `country` columns
+3. **Removed 31,984 duplicate** entries
+4. Final clean dataset contains **86,914 rows and 30 columns**
+5. Exported as `hotel_booking_clean_data.csv`
+
+### 2. Feature Engineering & Encoding
+
+- Dropped data leakage columns: `reservation_status`, `reservation_status_date`, `assigned_room_type`
+- Converted `country` codes to **continents** using `pycountry_convert`
+- Converted `arrival_date_month` to numeric values
+- Applied **label encoding** to all categorical columns: `hotel`, `meal`, `continent`, `market_segment`, `distribution_channel`, `reserved_room_type`, `deposit_type`, `customer_type`
+- Applied **StandardScaler** normalisation to all numerical features
+
+### 3. Model Building
+
+Trained and evaluated 9 classification models:
+
+| Model | Accuracy |
+|---|---|
+| Gradient Boosting | ~81.4% |
+| Random Forest | ~81.3% |
+| Extra Trees | ~80.8% |
+| XGBoost | ~80.5% |
+| AdaBoost | ~80.3% |
+| Bagging | ~79.7% |
+| Logistic Regression | ~78.6% |
+| KNN | ~78.3% |
+| Decision Tree | ~78.0% |
+
+Models were evaluated using Accuracy, Precision, Recall and F1 Score.
+
+### 4. Feature Selection
+
+Used **Gradient Boosting feature importances** to identify and drop low-importance features (importance < 0.01): `children`, `distribution_channel`, `is_repeated_guest`, `days_in_waiting_list`, `babies`, `previous_bookings_not_canceled`.
+
+Retraining on the reduced feature set improved model performance.
+
+### 5. Hyperparameter Tuning
+
+Applied **RandomizedSearchCV** (cv=5, n_iter=10) on `RandomForestClassifier` with the following parameter grid:
+- `n_estimators`: [100, 250, 500]
+- `max_leaf_nodes`: [100, 250, 500]
+- `max_depth`: [5, 10, 20]
+
+### 6. Known Limitations & Next Steps
+
+- Class imbalance (~63% not cancelled / ~37% cancelled) was identified but not addressed due to time constraints. Applying techniques such as SMOTE or `class_weight='balanced'` would be a natural next step.
 
 ---
 
@@ -52,8 +103,8 @@ This slight class imbalance will be accounted for during model training.
 hotel_cancelation_ml/
 │
 ├── data/
-│   ├── hotel_bookings_raw_data.csv   # raw dataset
-│   └── hotel_bookings_clean.csv      # cleaned dataset
+│   ├── hotel_bookings_raw_data.csv       # raw dataset
+│   └── hotel_booking_clean_data.csv      # cleaned dataset
 │
 ├── notebooks/
 │   ├── 01_cleaning.ipynb
@@ -67,7 +118,7 @@ hotel_cancelation_ml/
 
 ## Tools Used
 
-- **Python** (Pandas, NumPy, Matplotlib, Seaborn, Scikit-learn) — data analysis, visualisation, and ML
+- **Python** (Pandas, NumPy, Matplotlib, Seaborn, Scikit-learn, XGBoost, pycountry_convert) — data analysis, visualisation, and ML
 - **Jupyter Notebook** — analysis notebooks
 - **Git / GitHub** — version control
 
