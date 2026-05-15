@@ -125,7 +125,7 @@ hotel_cancelation_ml/
 ├── models/
 │   └── best_model_gradient_boosting.pkl
 │
-├── ML_presentation.pdf
+├── project_presentation.pdf
 ├── .gitignore
 └── README.md
 ```
