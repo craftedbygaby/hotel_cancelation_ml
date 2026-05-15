@@ -19,11 +19,10 @@ This project was developed as part of the **IronHack Data Analytics Bootcamp** a
 | Detail | Info |
 |---|---|
 | **Source** | [Kaggle — Hotel Booking Demand](https://www.kaggle.com/datasets/jessemostipak/hotel-booking-demand) |
-| **File** | `hotel_bookings.csv` |
+| **File** | `hotel_bookings_raw_data.csv` |
 | **Records** | 119,390 rows |
 | **Columns** | 32 |
 | **Coverage** | 2015 — 2017 |
-| **Note** | Real hotel booking data with personal identifiers removed. Columns `name`, `email`, `phone number`, and `credit_card` were artificially created and added. |
 | **Source Paper** | *Hotel Booking Demand Datasets* — Nuno Antonio, Ana Almeida, Luis Nunes. Data in Brief, Volume 22, February 2019. |
 
 ---
@@ -32,11 +31,9 @@ This project was developed as part of the **IronHack Data Analytics Bootcamp** a
 
 Predict whether a hotel booking will be cancelled (`is_canceled`: 0 or 1) using classification models, based on features such as lead time, deposit type, customer type, market segment, and seasonality.
 
-**Key facts about the target variable:**
-- ~63% of bookings were **not cancelled**
-- ~37% of bookings were **cancelled**
-
-This slight class imbalance will be accounted for during model training.
+**Key facts about the target variable (after cleaning):**
+- ~72% of bookings were **not cancelled**
+- ~28% of bookings were **cancelled**
 
 ---
 
@@ -49,51 +46,66 @@ The raw dataset (`hotel_bookings_raw_data.csv`) was cleaned using the following 
 1. **Dropped columns** with excessive null values: `agent` and `company`
 2. **Dropped rows** with missing values in `children` and `country` columns
 3. **Removed 31,984 duplicate** entries
-4. Final clean dataset contains **86,914 rows and 30 columns**
-5. Exported as `hotel_booking_clean_data.csv`
+4. **Dropped data leakage columns:** `reservation_status`, `reservation_status_date`, `assigned_room_type`
+5. Final clean dataset contains **86,914 rows and 30 columns**
+6. Exported as `hotel_booking_clean_data.csv`
 
 ### 2. Feature Engineering & Encoding
 
-- Dropped data leakage columns: `reservation_status`, `reservation_status_date`, `assigned_room_type`
-- Converted `country` codes to **continents** using `pycountry_convert`
-- Converted `arrival_date_month` to numeric values
+- Converted `country` codes to **continents** using `pycountry_convert` (170+ codes → 7 regions)
+- Converted `arrival_date_month` from string to numeric values (1–12)
 - Applied **label encoding** to all categorical columns: `hotel`, `meal`, `continent`, `market_segment`, `distribution_channel`, `reserved_room_type`, `deposit_type`, `customer_type`
 - Applied **StandardScaler** normalisation to all numerical features
 
 ### 3. Model Building
 
-Trained and evaluated 9 classification models:
+Trained and evaluated 9 classification models. Evaluated using Accuracy, Precision, Recall and F1 Score, ranked by F1 Score:
 
-| Model | Accuracy |
-|---|---|
-| Gradient Boosting | ~81.4% |
-| Random Forest | ~81.3% |
-| Extra Trees | ~80.8% |
-| XGBoost | ~80.5% |
-| AdaBoost | ~80.3% |
-| Bagging | ~79.7% |
-| Logistic Regression | ~78.6% |
-| KNN | ~78.3% |
-| Decision Tree | ~78.0% |
+| Model | Accuracy | Precision | Recall | F1 Score |
+|---|---|---|---|---|
+| **Gradient Boosting** | 0.8105 | 0.7039 | 0.5455 | **0.6146** |
+| Extra Trees | 0.8119 | 0.7129 | 0.5378 | 0.6131 |
+| Random Forest | 0.8155 | 0.7442 | 0.5091 | 0.6046 |
+| AdaBoost | 0.7996 | 0.6754 | 0.5326 | 0.5955 |
+| XGBoost | 0.8053 | 0.7254 | 0.4784 | 0.5766 |
+| Decision Tree | 0.7718 | 0.6035 | 0.5139 | 0.5551 |
+| Bagging | 0.7995 | 0.7221 | 0.4489 | 0.5536 |
+| KNN | 0.7899 | 0.6946 | 0.4313 | 0.5322 |
+| Logistic Regression | 0.7743 | 0.6963 | 0.3289 | 0.4468 |
 
-Models were evaluated using Accuracy, Precision, Recall and F1 Score.
+**Gradient Boosting** was selected as the best model based on F1 Score.
 
 ### 4. Feature Selection
 
 Used **Gradient Boosting feature importances** to identify and drop low-importance features (importance < 0.01): `children`, `distribution_channel`, `is_repeated_guest`, `days_in_waiting_list`, `babies`, `previous_bookings_not_canceled`.
 
-Retraining on the reduced feature set improved model performance.
+After retraining on the reduced feature set, model performance did not improve — the full feature set was kept.
+
+| Model | Accuracy | F1 Score |
+|---|---|---|
+| Gradient Boosting (original) | 0.8113 | 0.616 |
+| Gradient Boosting (reduced) | 0.8102 | 0.614 |
 
 ### 5. Hyperparameter Tuning
 
-Applied **RandomizedSearchCV** (cv=5, n_iter=10) on `RandomForestClassifier` with the following parameter grid:
+Applied **RandomizedSearchCV** (cv=5, n_iter=10) on `GradientBoostingClassifier`. RandomizedSearch was chosen over GridSearch due to training time constraints (~109 minutes for 10 combinations alone).
+
+Parameter grid:
 - `n_estimators`: [100, 250, 500]
 - `max_leaf_nodes`: [100, 250, 500]
 - `max_depth`: [5, 10, 20]
 
+**Best parameters:** `n_estimators: 250`, `max_depth: 10`, `max_leaf_nodes: 100`
+
+| Model | Accuracy | Precision | Recall | F1 Score |
+|---|---|---|---|---|
+| Gradient Boosting (tuned) | 0.8195 | 0.7378 | 0.5409 | 0.6242 |
+
 ### 6. Known Limitations & Next Steps
 
-- Class imbalance (~63% not cancelled / ~37% cancelled) was identified but not addressed due to time constraints. Applying techniques such as SMOTE or `class_weight='balanced'` would be a natural next step.
+- Class imbalance (~72% not cancelled / ~28% cancelled) was identified but not addressed due to time constraints — a natural next step for future improvement.
+- Training times for ensemble models were significant, limiting the number of experiments possible within the week.
+- More powerful boosting models (LightGBM, CatBoost) were not explored and could push performance further.
 
 ---
 
@@ -110,6 +122,10 @@ hotel_cancelation_ml/
 │   ├── 01_cleaning.ipynb
 │   └── 02_modeling.ipynb
 │
+├── models/
+│   └── best_model_gradient_boosting.pkl
+│
+├── ML_presentation.pdf
 ├── .gitignore
 └── README.md
 ```
@@ -134,7 +150,7 @@ hotel_cancelation_ml/
 
 2. Install Python dependencies:
    ```bash
-   pip install pandas numpy matplotlib seaborn scikit-learn jupyter
+   pip install pandas numpy matplotlib seaborn scikit-learn xgboost pycountry_convert jupyter
    ```
 
 3. Run notebooks in order inside the `notebooks/` folder.
@@ -143,9 +159,9 @@ hotel_cancelation_ml/
 
 ## Limitations
 
-- Personal identifiers have been removed from the dataset — columns `name`, `email`, `phone number`, and `credit_card` are artificially generated and should not be used in modelling
 - Covers only two hotel types: Resort Hotel and City Hotel
 - Data spans 2015–2017 — patterns may not reflect current booking trends
+- Class imbalance (~72/28) was not addressed during modelling
 
 ---
 
