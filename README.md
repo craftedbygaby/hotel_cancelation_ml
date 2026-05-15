@@ -1,4 +1,4 @@
-# 🏨 Hotel Booking Cancellation Predictor — ML Analysis
+# 🏨 Hotel Booking Cancellation Predictor — Machine Learning Project
 
 **Hotel Cancellation ML** is a machine learning project focused on predicting whether a hotel booking will be cancelled, based on booking characteristics and customer behaviour.
 
